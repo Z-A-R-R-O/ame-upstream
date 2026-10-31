@@ -1,6 +1,5 @@
 package com.openclaw.assistant.backend
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -9,10 +8,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.content
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.long
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import okhttp3.OkHttpClient
@@ -64,12 +61,16 @@ class ZetroAgentClient(
                 var socket: WebSocket? = null
                 socket = httpClient.newWebSocket(request, object : WebSocketListener() {
                     override fun onOpen(webSocket: WebSocket, response: Response) {
-                        webSocket.send(AmeProtocol.event(
+                        val sent = webSocket.send(AmeProtocol.event(
                             sessionId = sessionId,
                             sequence = 0,
                             type = "session.open",
                             payload = sessionOpenPayload(),
                         ).toString())
+                        if (!sent && continuation.isActive) {
+                            continuation.resume(false)
+                            webSocket.close(1011, "Could not send session.open")
+                        }
                     }
 
                     override fun onMessage(webSocket: WebSocket, text: String) {
@@ -85,6 +86,10 @@ class ZetroAgentClient(
                     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                         if (continuation.isActive) continuation.resume(false)
                     }
+
+                    override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                        if (continuation.isActive) continuation.resume(false)
+                    }
                 })
                 continuation.invokeOnCancellation { socket?.cancel() }
             }
@@ -97,6 +102,7 @@ class ZetroAgentClient(
         )
     }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     override fun sendMessage(
         messages: List<AgentMessage>,
         options: AgentSendOptions,
