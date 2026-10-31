@@ -33,7 +33,7 @@ class ZetroAgentClient(
     private val httpClient: OkHttpClient = defaultHttpClient(),
 ) : AgentClient {
     @Volatile private var activeSocket: WebSocket? = null
-    private val deviceId: String = UUID.randomUUID().toString()
+    private val deviceId: String = config.id
 
     private val endpoint: String
         get() = config.baseUrl?.trim().orEmpty()
