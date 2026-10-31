@@ -27,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -195,6 +196,7 @@ fun BackendEditorScreen(existingId: String?, onDone: () -> Unit) {
                         onValueChange = { token = it },
                         label = { Text("ZETRO gateway bearer token") },
                         modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = PasswordVisualTransformation(),
                         singleLine = true,
                     )
                     Spacer(Modifier.height(4.dp))
