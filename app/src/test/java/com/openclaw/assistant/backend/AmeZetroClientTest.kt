@@ -70,4 +70,21 @@ class AmeZetroClientTest {
 
         assertTrue(AgentClientFactory.create(config) is AmeZetroClient)
     }
+
+    @Test
+    fun conversationIdIsStableAcrossRestartsAndScopedToBackendAndChat() {
+        val first = stableAmeConversationId("backend-1", "chat-1")
+        val afterRestart = stableAmeConversationId("backend-1", "chat-1")
+
+        assertEquals(first, afterRestart)
+        assertEquals(first, java.util.UUID.fromString(first).toString())
+        assertTrue(first != stableAmeConversationId("backend-1", "chat-2"))
+        assertTrue(first != stableAmeConversationId("backend-2", "chat-1"))
+    }
+
+    @Test
+    fun stableConversationIdRejectsBlankInputs() {
+        assertTrue(runCatching { stableAmeConversationId("", "chat-1") }.isFailure)
+        assertTrue(runCatching { stableAmeConversationId("backend-1", " ") }.isFailure)
+    }
 }
