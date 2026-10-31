@@ -1,5 +1,6 @@
 package com.openclaw.assistant.backend
 
+import com.openclaw.assistant.BuildConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -345,7 +346,7 @@ class AmeZetroClient(
 
     companion object {
         const val PROTOCOL_VERSION = "0.1"
-        private const val APP_VERSION = "ame-android-alpha"
+        private val APP_VERSION = BuildConfig.VERSION_NAME
         private const val MAX_EVENT_CHARS = 64 * 1024
         private val SUPPORTED_SERVER_EVENTS = setOf(
             "session.accepted",
