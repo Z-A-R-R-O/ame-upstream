@@ -24,6 +24,7 @@ import okhttp3.WebSocketListener
 import java.time.OffsetDateTime
 import java.time.Instant
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
@@ -89,8 +90,14 @@ class AmeZetroClient(
         emit(AgentEvent.Started())
         var session: Session? = null
         try {
-            val activeSession = openSession()
+            val conversationKey = options.sessionId?.takeIf { it.isNotBlank() }
+            val activeSession = openSession(
+                resumeConversationId = conversationKey?.let { AmeConversationStore.get(config.id, it) },
+            )
             session = activeSession
+            if (conversationKey != null) {
+                AmeConversationStore.put(config.id, conversationKey, activeSession.conversationId)
+            }
             val turnId = UUID.randomUUID().toString()
             val sent = activeSession.socket.send(event(
                 sessionId = activeSession.sessionId,
@@ -161,7 +168,7 @@ class AmeZetroClient(
         }
     }.flowOn(Dispatchers.IO)
 
-    private suspend fun openSession(): Session {
+    private suspend fun openSession(resumeConversationId: String? = null): Session {
         val endpoint = config.baseUrl?.trim().orEmpty()
         val token = config.apiKeyOrToken?.trim().orEmpty()
         require(endpoint.startsWith("wss://", ignoreCase = true)) {
@@ -219,6 +226,7 @@ class AmeZetroClient(
                                     put("deviceId", config.id)
                                     put("appVersion", APP_VERSION)
                                     put("deviceCapabilities", buildJsonArray { })
+                                    resumeConversationId?.let { put("conversationId", it) }
                                 },
                             )
                             if (!socket.send(open.toString())) {
@@ -344,5 +352,18 @@ class AmeZetroClient(
             .readTimeout(0, TimeUnit.MILLISECONDS)
             .pingInterval(25, TimeUnit.SECONDS)
             .build()
+    }
+}
+
+
+/** Keeps the server conversation associated with each local chat session in memory. */
+internal object AmeConversationStore {
+    private val conversations = ConcurrentHashMap<String, String>()
+
+    fun get(backendId: String, localSessionId: String): String? =
+        conversations["$backendId:$localSessionId"]
+
+    fun put(backendId: String, localSessionId: String, conversationId: String) {
+        conversations["$backendId:$localSessionId"] = conversationId
     }
 }
