@@ -67,6 +67,8 @@ class AmeZetroClient(
             session.socket.close(1000, "Connection test complete")
             session.incoming.close()
             ConnectionTestResult(true, "AME protocol v0.1 connected", System.currentTimeMillis() - started)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             ConnectionTestResult(false, e.message ?: e.javaClass.simpleName, System.currentTimeMillis() - started)
         }
@@ -280,6 +282,7 @@ class AmeZetroClient(
         session.lastInboundSequence = sequence
         val type = root["type"]?.jsonPrimitive?.contentOrNull
             ?: throw IllegalStateException("ZETRO event has no type")
+        require(type in SUPPORTED_SERVER_EVENTS) { "Unsupported AME server event: " + type }
         val payload = root["payload"]?.jsonObject
             ?: throw IllegalStateException("ZETRO event has no payload")
         when (type) {
@@ -344,6 +347,18 @@ class AmeZetroClient(
         const val PROTOCOL_VERSION = "0.1"
         private const val APP_VERSION = "ame-android-alpha"
         private const val MAX_EVENT_CHARS = 64 * 1024
+        private val SUPPORTED_SERVER_EVENTS = setOf(
+            "session.accepted",
+            "session.close",
+            "assistant.delta",
+            "assistant.complete",
+            "session.error",
+            "capability.proposed",
+            "approval.required",
+            "approval.decided",
+            "capability.execute",
+            "capability.result",
+        )
         private const val CONNECT_TIMEOUT_MS = 15_000L
         private const val RESPONSE_TIMEOUT_MS = 90_000L
 
