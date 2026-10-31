@@ -1498,6 +1498,7 @@ private fun HermesFinalStep(onFinish: () -> Unit) {
                                     BackendType.HERMES_API_SERVER -> "Hermes Agent"
                                     BackendType.OPENCLAW_GATEWAY -> "OpenClaw"
                                     BackendType.OPENCLAW_HTTP -> "OpenClaw API"
+                                    BackendType.AME_ZETRO -> "AME · ZETRO"
                                 },
                                 style = MaterialTheme.typography.labelMedium,
                                 color = OnboardingGradientMid
@@ -1640,7 +1641,8 @@ private suspend fun sendSetupProbeMessage(
             PrimaryBackendDispatcher.send(context, prompt, backendId = target.id, sessionId = "agent-voice-setup-check")?.text.orEmpty()
         }
         BackendType.HERMES_API_SERVER,
-        BackendType.OPENCLAW_HTTP -> {
+        BackendType.OPENCLAW_HTTP,
+        BackendType.AME_ZETRO -> {
             val collected = StringBuilder()
             AgentClientFactory.create(target).sendMessage(
                 messages = listOf(AgentMessage.user(prompt)),
