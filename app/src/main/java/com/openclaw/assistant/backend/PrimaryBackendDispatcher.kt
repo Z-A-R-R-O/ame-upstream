@@ -40,7 +40,8 @@ object PrimaryBackendDispatcher {
         } ?: return null
         return when (target.type) {
             BackendType.HERMES_API_SERVER,
-            BackendType.OPENCLAW_HTTP -> sendViaAgentClient(context, target, userText, sessionId, agentId)
+            BackendType.OPENCLAW_HTTP,
+            BackendType.ZETRO_GATEWAY -> sendViaAgentClient(context, target, userText, sessionId, agentId)
             BackendType.OPENCLAW_GATEWAY -> sendViaGateway(context, target, userText)
         }
     }

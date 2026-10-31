@@ -286,6 +286,28 @@ fun BackendEditorScreen(existingId: String?, onDone: () -> Unit) {
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(value = token, onValueChange = { token = it }, label = { Text(stringResource(R.string.auth_token_label)) }, modifier = Modifier.fillMaxWidth())
                 }
+                BackendType.ZETRO_GATEWAY -> {
+                    Text(
+                        "Connect AME to your ZETRO gateway. Use a secure WebSocket URL and a scoped gateway token.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = baseUrl,
+                        onValueChange = { baseUrl = it },
+                        label = { Text("ZETRO secure WebSocket URL (wss://)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = token,
+                        onValueChange = { token = it },
+                        label = { Text("ZETRO bearer token") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                    )
+                }
             }
 
             Spacer(Modifier.height(8.dp))
@@ -360,10 +382,12 @@ private fun shortLabel(t: BackendType) = when (t) {
     BackendType.HERMES_API_SERVER -> "Hermes Agent"
     BackendType.OPENCLAW_GATEWAY -> "OpenClaw"
     BackendType.OPENCLAW_HTTP -> "OpenClaw API"
+    BackendType.ZETRO_GATEWAY -> "ZETRO"
 }
 
 private fun defaultName(t: BackendType) = when (t) {
     BackendType.HERMES_API_SERVER -> "Hermes Agent"
     BackendType.OPENCLAW_GATEWAY -> "OpenClaw"
     BackendType.OPENCLAW_HTTP -> "OpenClaw API"
+    BackendType.ZETRO_GATEWAY -> "ZETRO"
 }
