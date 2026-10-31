@@ -189,7 +189,7 @@ class ZetroAgentClient(
                         if (delta.isNotEmpty()) output.trySend(AgentEvent.TokenDelta(delta))
                     }
                     "assistant.complete" -> {
-                        val finalText = payload["text"]?.toString()?.removeSurrounding("\"").orEmpty()
+                        val finalText = payload["text"]?.jsonPrimitive?.content.orEmpty()
                         if (completed.compareAndSet(false, true)) {
                             output.trySend(AgentEvent.Completed(finalText))
                             output.close()
