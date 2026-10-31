@@ -185,7 +185,7 @@ class ZetroAgentClient(
                         }
                     }
                     "assistant.delta" -> {
-                        val delta = payload["text"]?.toString()?.removeSurrounding("\"") ?: ""
+                        val delta = payload["text"]?.jsonPrimitive?.content ?: ""
                         if (delta.isNotEmpty()) output.trySend(AgentEvent.TokenDelta(delta))
                     }
                     "assistant.complete" -> {
@@ -197,7 +197,7 @@ class ZetroAgentClient(
                         }
                     }
                     "session.error" -> {
-                        val message = payload["message"]?.toString()?.removeSurrounding("\"")
+                        val message = payload["message"]?.jsonPrimitive?.content
                             ?: "ZETRO session error"
                         if (completed.compareAndSet(false, true)) {
                             output.trySend(AgentEvent.Error(message))
