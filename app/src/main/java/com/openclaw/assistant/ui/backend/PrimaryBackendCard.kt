@@ -50,9 +50,11 @@ fun PrimaryBackendCard(
     val backends by manager.backends.collectAsState()
     val openClaw = remember(backends) { backends.preferredOpenClawBackend() }
     val hermes = remember(backends) { backends.preferredHermesBackend() }
+    val zetro = remember(backends) { backends.preferredZetroBackend() }
     var hermesTest by remember { mutableStateOf<ConnectionTestResult?>(null) }
+    var zetroTest by remember { mutableStateOf<ConnectionTestResult?>(null) }
     val scope = rememberCoroutineScope()
-    val hasConfiguredBackend = openClaw != null || hermes != null
+    val hasConfiguredBackend = openClaw != null || hermes != null || zetro != null
     val connectionTestingText = stringResource(R.string.av_connection_testing)
 
     LaunchedEffect(hermes?.id, hermes?.updatedAt) {
@@ -62,6 +64,16 @@ fun PrimaryBackendCard(
         } else {
             hermesTest = ConnectionTestResult(false, connectionTestingText)
             hermesTest = withContext(Dispatchers.IO) { AgentClientFactory.create(config).testConnection() }
+        }
+    }
+
+    LaunchedEffect(zetro?.id, zetro?.updatedAt) {
+        val config = zetro
+        if (config == null) {
+            zetroTest = null
+        } else {
+            zetroTest = ConnectionTestResult(false, connectionTestingText)
+            zetroTest = withContext(Dispatchers.IO) { AgentClientFactory.create(config).testConnection() }
         }
     }
 
@@ -99,6 +111,19 @@ fun PrimaryBackendCard(
                     },
                     modifier = Modifier.weight(1f),
                 )
+                BackendProductTile(
+                    name = "ZETRO",
+                    configured = zetro != null,
+                    connected = zetroTest?.ok == true,
+                    testing = zetro != null && zetroTest?.message == connectionTestingText,
+                    statusText = when {
+                        zetroTest?.ok == true -> stringResource(R.string.av_home_connected)
+                        zetroTest != null -> zetroTest?.message ?: stringResource(R.string.av_home_disconnected)
+                        zetro != null -> connectionTestingText
+                        else -> stringResource(R.string.av_home_not_configured)
+                    },
+                    modifier = Modifier.weight(1f),
+                )
             }
             if (hasConfiguredBackend) {
                 Button(
@@ -110,6 +135,12 @@ fun PrimaryBackendCard(
                             scope.launch {
                                 hermesTest = ConnectionTestResult(false, connectionTestingText)
                                 hermesTest = withContext(Dispatchers.IO) { AgentClientFactory.create(config).testConnection() }
+                            }
+                        }
+                        zetro?.let { config ->
+                            scope.launch {
+                                zetroTest = ConnectionTestResult(false, connectionTestingText)
+                                zetroTest = withContext(Dispatchers.IO) { AgentClientFactory.create(config).testConnection() }
                             }
                         }
                     },
@@ -171,5 +202,10 @@ private fun List<AgentBackendConfig>.preferredOpenClawBackend(): AgentBackendCon
 
 private fun List<AgentBackendConfig>.preferredHermesBackend(): AgentBackendConfig? {
     val enabled = filter { it.enabled && it.type == BackendType.HERMES_API_SERVER }
+    return enabled.firstOrNull { it.isPrimary } ?: enabled.firstOrNull()
+}
+
+private fun List<AgentBackendConfig>.preferredZetroBackend(): AgentBackendConfig? {
+    val enabled = filter { it.enabled && it.type == BackendType.ZETRO_GATEWAY }
     return enabled.firstOrNull { it.isPrimary } ?: enabled.firstOrNull()
 }
