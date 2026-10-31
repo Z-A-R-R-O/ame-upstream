@@ -9,6 +9,10 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.content
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import okhttp3.OkHttpClient
@@ -70,7 +74,7 @@ class ZetroAgentClient(
                     override fun onMessage(webSocket: WebSocket, text: String) {
                         val event = AmeProtocol.parse(text) ?: return
                         if (!AmeProtocol.isValidEnvelope(event, sessionId, -1)) return
-                        when (event["type"]?.toString()?.trim('"')) {
+                        when (event["type"]?.jsonPrimitive?.content) {
                             "session.accepted" -> if (continuation.isActive) continuation.resume(true)
                             "session.error" -> if (continuation.isActive) continuation.resume(false)
                         }
@@ -155,7 +159,7 @@ class ZetroAgentClient(
                     return
                 }
 
-                inboundSequence = event["sequence"]!!.toString().toLong()
+                inboundSequence = event["sequence"]!!.jsonPrimitive.long
                 val type = event["type"]?.toString()?.trim('"')
                 val payload = event["payload"] as? JsonObject ?: return
                 when (type) {
