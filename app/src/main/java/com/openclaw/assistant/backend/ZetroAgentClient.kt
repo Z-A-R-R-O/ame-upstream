@@ -141,9 +141,14 @@ class ZetroAgentClient(
                     sessionId = sessionId,
                     sequence = outboundSequence++,
                     type = "session.open",
-                    payload = sessionOpenPayload(),
+                    payload = sessionOpenPayload(options.sessionId),
                 )
-                webSocket.send(open.toString())
+                if (!webSocket.send(open.toString())) {
+                    if (completed.compareAndSet(false, true)) {
+                        output.trySend(AgentEvent.Error("Could not open a ZETRO session"))
+                        output.close()
+                    }
+                }
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -250,10 +255,11 @@ class ZetroAgentClient(
             .header("Authorization", "Bearer $token")
             .header("X-AME-Protocol-Version", AmeProtocol.VERSION)
 
-    private fun sessionOpenPayload(): JsonObject = buildJsonObject {
+    private fun sessionOpenPayload(conversationId: String? = null): JsonObject = buildJsonObject {
         put("deviceId", deviceId)
         put("appVersion", com.openclaw.assistant.BuildConfig.VERSION_NAME)
         put("deviceCapabilities", kotlinx.serialization.json.buildJsonArray { })
+        conversationId?.takeIf { it.isNotBlank() }?.let { put("conversationId", it) }
     }
 
     companion object {
