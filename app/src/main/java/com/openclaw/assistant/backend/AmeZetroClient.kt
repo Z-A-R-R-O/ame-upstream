@@ -29,6 +29,18 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
+ * Stable server conversation ID for one local chat and one configured backend.
+ * Both IDs are app-local identifiers, not credentials. The gateway still binds
+ * the resulting conversation to the authenticated device principal.
+ */
+internal fun stableAmeConversationId(backendId: String, localSessionId: String): String {
+    require(backendId.isNotBlank()) { "backendId must not be blank" }
+    require(localSessionId.isNotBlank()) { "localSessionId must not be blank" }
+    val name = "ame-conversation\u0000$backendId\u0000$localSessionId"
+    return UUID.nameUUIDFromBytes(name.toByteArray(Charsets.UTF_8)).toString()
+}
+
+/**
  * AME protocol v0.1 transport for the ZETRO conversation gateway.
  * This client exposes conversation events only; remote capability events are
  * never executed by this transport.
@@ -94,9 +106,13 @@ class AmeZetroClient(
         var session: Session? = null
         try {
             val conversationKey = options.sessionId?.takeIf { it.isNotBlank() }
-            val activeSession = openSession(
-                resumeConversationId = conversationKey?.let { AmeConversationStore.get(config.id, it) },
-            )
+            // The deterministic fallback preserves the same server conversation
+            // after Android process death, even when the in-memory cache is empty.
+            val resumeConversationId = conversationKey?.let { localSessionId ->
+                AmeConversationStore.get(config.id, localSessionId)
+                    ?: stableAmeConversationId(config.id, localSessionId)
+            }
+            val activeSession = openSession(resumeConversationId = resumeConversationId)
             session = activeSession
             if (conversationKey != null) {
                 AmeConversationStore.put(config.id, conversationKey, activeSession.conversationId)

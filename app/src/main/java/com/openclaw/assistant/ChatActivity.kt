@@ -931,6 +931,7 @@ fun ChatSettingsDialog(
                             BackendType.HERMES_API_SERVER -> stringResource(R.string.av_backend_kind_hermes)
                             BackendType.OPENCLAW_GATEWAY -> stringResource(R.string.av_backend_kind_gateway)
                             BackendType.OPENCLAW_HTTP -> stringResource(R.string.av_backend_kind_http)
+                            BackendType.AME_ZETRO -> "AME · ZETRO"
                         },
                         onClick = { pendingSelectedId = backend.id },
                     )
@@ -958,6 +959,7 @@ fun ChatSettingsDialog(
                             BackendType.HERMES_API_SERVER -> stringResource(R.string.backend_hermes_model_title)
                             BackendType.OPENCLAW_GATEWAY -> stringResource(R.string.backend_openclaw_model_title)
                             BackendType.OPENCLAW_HTTP -> stringResource(R.string.backend_openclaw_api_model_title)
+                            BackendType.AME_ZETRO -> "ZETRO model"
                         },
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
@@ -972,6 +974,7 @@ fun ChatSettingsDialog(
                                     BackendType.HERMES_API_SERVER -> stringResource(R.string.backend_hermes_model_help)
                                     BackendType.OPENCLAW_GATEWAY -> stringResource(R.string.backend_openclaw_model_help)
                                     BackendType.OPENCLAW_HTTP -> stringResource(R.string.backend_openclaw_api_model_help)
+                                    BackendType.AME_ZETRO -> "Model selected by your ZETRO server."
                                 },
                             )
                         },
@@ -1058,6 +1061,7 @@ private fun defaultModelFor(type: BackendType?): String = when (type) {
     BackendType.OPENCLAW_HTTP -> "openclaw"
     BackendType.HERMES_API_SERVER,
     null -> "default"
+    BackendType.AME_ZETRO -> "default"
 }
 
 @Composable
