@@ -7,4 +7,5 @@ enum class BackendType {
     OPENCLAW_GATEWAY,
     OPENCLAW_HTTP,
     HERMES_API_SERVER,
+    AME_ZETRO,
 }

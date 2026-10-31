@@ -27,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -181,6 +182,26 @@ fun BackendEditorScreen(existingId: String?, onDone: () -> Unit) {
             Spacer(Modifier.height(12.dp))
 
             when (type) {
+                BackendType.AME_ZETRO -> {
+                    OutlinedTextField(
+                        value = baseUrl,
+                        onValueChange = { baseUrl = it },
+                        label = { Text("Secure ZETRO gateway URL (wss://)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = token,
+                        onValueChange = { token = it },
+                        label = { Text("ZETRO gateway bearer token") },
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text("AME protocol v0.1 · Conversation transport only. Android actions are not enabled by this connection.", style = MaterialTheme.typography.bodySmall)
+                }
                 BackendType.HERMES_API_SERVER -> {
                     OutlinedTextField(value = baseUrl, onValueChange = { baseUrl = it }, label = { Text(stringResource(R.string.backend_primary_url_label)) }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
@@ -360,10 +381,12 @@ private fun shortLabel(t: BackendType) = when (t) {
     BackendType.HERMES_API_SERVER -> "Hermes Agent"
     BackendType.OPENCLAW_GATEWAY -> "OpenClaw"
     BackendType.OPENCLAW_HTTP -> "OpenClaw API"
+    BackendType.AME_ZETRO -> "AME · ZETRO"
 }
 
 private fun defaultName(t: BackendType) = when (t) {
     BackendType.HERMES_API_SERVER -> "Hermes Agent"
     BackendType.OPENCLAW_GATEWAY -> "OpenClaw"
     BackendType.OPENCLAW_HTTP -> "OpenClaw API"
+    BackendType.AME_ZETRO -> "AME · ZETRO"
 }
