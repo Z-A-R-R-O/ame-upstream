@@ -12,6 +12,7 @@
 > - OpenClaw Gateway (WebSocket, pairing, QR, TLS)
 > - OpenClaw HTTP (OpenAI-compatible chat)
 > - Hermes API Server (`/v1/chat/completions` streaming + `/v1/runs` Runs API)
+- **AME → ZETRO** (AME protocol v0.1 over authenticated secure WebSocket; conversation transport only)
 >
 > **Mobile Bridge (optional, off by default).** WakeHermesClaw can expose a
 > bearer-token-protected local HTTP service that lets Hermes reach a
@@ -50,6 +51,14 @@
 > automatically synced to the watch yet.
 >
 > **Build:** `./gradlew testDebugUnitTest assembleDebug`.
+
+## AME / ZETRO backend
+
+The backend selector includes **AME · ZETRO**. Configure a secure `wss://` gateway endpoint and a bearer token under **Settings → Backends → Add Backend**. The token is persisted through the existing encrypted backend repository and is sent only in the WebSocket authorization header.
+
+The Android client speaks AME protocol v0.1: `session.open`, `session.accepted`, `user.turn`, `assistant.delta`, `assistant.complete`, and `session.close`. It validates the session envelope and increasing inbound sequence numbers, limits inbound events to 64 KB, and does not execute remote Android capability events.
+
+**Gateway requirement:** this is the Android client integration. A compatible ZETRO-side WebSocket gateway must be deployed separately before the backend can connect. Do not point it at an ordinary OpenClaw or Hermes endpoint.
 
 ---
 
