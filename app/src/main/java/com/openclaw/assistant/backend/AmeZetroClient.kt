@@ -1,5 +1,6 @@
 package com.openclaw.assistant.backend
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -88,11 +89,12 @@ class AmeZetroClient(
         emit(AgentEvent.Started())
         var session: Session? = null
         try {
-            session = openSession()
+            val activeSession = openSession()
+            session = activeSession
             val turnId = UUID.randomUUID().toString()
-            val sent = session.socket.send(event(
-                sessionId = session.sessionId,
-                sequence = session.nextOutboundSequence++,
+            val sent = activeSession.socket.send(event(
+                sessionId = activeSession.sessionId,
+                sequence = activeSession.nextOutboundSequence++,
                 turnId = turnId,
                 type = "user.turn",
                 payload = buildJsonObject {
@@ -107,10 +109,10 @@ class AmeZetroClient(
             }
 
             withTimeout(RESPONSE_TIMEOUT_MS) {
-                for (signal in session.incoming) {
+                for (signal in activeSession.incoming) {
                     when (signal) {
                         is Signal.Message -> {
-                            val incoming = parseAndValidate(signal.text, session)
+                            val incoming = parseAndValidate(signal.text, activeSession)
                             when (incoming.first) {
                                 "assistant.delta" -> {
                                     val delta = incoming.second["text"]?.jsonPrimitive?.contentOrNull.orEmpty()
@@ -139,6 +141,8 @@ class AmeZetroClient(
                 }
                 throw IllegalStateException("ZETRO connection ended before the assistant completed")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             emit(AgentEvent.Error(e.message ?: e.javaClass.simpleName, e))
         } finally {
