@@ -2196,6 +2196,7 @@ private fun AgentBackendConfig.settingsTypeLabel(): String = when (type) {
     BackendType.HERMES_API_SERVER -> "Hermes Agent · ${baseUrl ?: stringResource(R.string.av_backend_url_unset)}"
     BackendType.OPENCLAW_GATEWAY -> "OpenClaw · ${host ?: stringResource(R.string.av_backend_host_unset)}:${port ?: "?"}"
     BackendType.OPENCLAW_HTTP -> "OpenClaw API · ${baseUrl ?: stringResource(R.string.av_backend_url_unset)}"
+    BackendType.AME_ZETRO -> "AME · ${baseUrl ?: stringResource(R.string.av_backend_url_unset)}"
 }
 
 private fun AgentBackendConfig.agentContextLabel(): String? {

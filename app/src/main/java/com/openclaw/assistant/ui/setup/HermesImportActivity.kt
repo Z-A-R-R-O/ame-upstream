@@ -780,6 +780,7 @@ internal fun applyPairingPayload(
                 } == true
                 BackendType.OPENCLAW_GATEWAY -> config.type == desired
                 BackendType.OPENCLAW_HTTP -> config.type == desired
+                BackendType.AME_ZETRO -> config.type == desired
             }
         } ?: repo.backends.value.firstOrNull { it.enabled && it.type == desired }
         match?.let { repo.setPrimary(it.id) }
