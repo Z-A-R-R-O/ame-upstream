@@ -36,6 +36,7 @@ class ZetroAgentClient(
     private val httpClient: OkHttpClient = defaultHttpClient(),
 ) : AgentClient {
     @Volatile private var activeSocket: WebSocket? = null
+    private val deviceId: String = UUID.randomUUID().toString()
 
     private val endpoint: String
         get() = config.baseUrl?.trim().orEmpty()
@@ -105,6 +106,11 @@ class ZetroAgentClient(
             ?.content?.trim().orEmpty()
         if (userText.isBlank()) {
             output.trySend(AgentEvent.Error("ZETRO message is empty"))
+            output.close()
+            return@callbackFlow
+        }
+        if (userText.length > 8_000) {
+            output.trySend(AgentEvent.Error("ZETRO messages are limited to 8,000 characters"))
             output.close()
             return@callbackFlow
         }
@@ -211,6 +217,7 @@ class ZetroAgentClient(
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                activeSocket = null
                 if (completed.compareAndSet(false, true)) {
                     output.trySend(AgentEvent.Error(t.message ?: "ZETRO connection failed", t))
                     output.close()
@@ -244,17 +251,14 @@ class ZetroAgentClient(
             .header("X-AME-Protocol-Version", AmeProtocol.VERSION)
 
     private fun sessionOpenPayload(): JsonObject = buildJsonObject {
-        put("deviceId", DEVICE_ID)
-        put("appVersion", APP_VERSION)
+        put("deviceId", deviceId)
+        put("appVersion", com.openclaw.assistant.BuildConfig.VERSION_NAME)
         put("deviceCapabilities", kotlinx.serialization.json.buildJsonArray { })
     }
 
     companion object {
         private const val HANDSHAKE_TIMEOUT_MS = 12_000L
         private const val MAX_EVENT_CHARS = 64 * 1024
-        private const val DEVICE_ID = "ame-android"
-        private const val APP_VERSION = "0.1.0"
-
         private fun defaultHttpClient(): OkHttpClient = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(0, TimeUnit.MILLISECONDS)
