@@ -193,4 +193,5 @@ private fun AgentBackendConfig.typeLabel(): String = when (type) {
     BackendType.HERMES_API_SERVER -> stringResource(R.string.backend_type_hermes_with_url, baseUrl ?: stringResource(R.string.no_url))
     BackendType.OPENCLAW_GATEWAY -> stringResource(R.string.backend_type_openclaw_with_host, host ?: "?", port?.toString() ?: "?")
     BackendType.OPENCLAW_HTTP -> stringResource(R.string.backend_type_openclaw_api_with_url, baseUrl ?: stringResource(R.string.no_url))
+    BackendType.AME_ZETRO -> "AME · ZETRO · " + (baseUrl ?: "No WSS endpoint")
 }
